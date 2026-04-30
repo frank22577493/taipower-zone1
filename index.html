@@ -1,4 +1,1047 @@
 <!DOCTYPE html>
-<html><head><meta charset="UTF-8">
-<meta http-equiv="refresh" content="0; url=Zone1_算力吃電王.html">
-</head><body></body></html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>算力吃電王 ｜ ZONE 1 算力時代 ｜ 台電 2026</title>
+<style>
+  :root {
+    --cyan: #00f5ff;
+    --green: #00ff88;
+    --yellow: #ffcc00;
+    --red: #ff3344;
+    --dark: #050d1a;
+    --navy: #0a1628;
+    --card-bg: rgba(0,20,50,0.82);
+    --border-cyan: rgba(0,245,255,0.4);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--dark);
+    color: #fff;
+    font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif;
+    overflow: hidden;
+    width: 100vw; height: 100vh;
+  }
+
+  /* ─── SCREENS ─── */
+  .screen {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: opacity 0.5s;
+  }
+  .screen.hidden { opacity: 0; pointer-events: none; }
+
+  .bg-cover {
+    position: absolute; inset: 0;
+    background-size: cover; background-position: center;
+    z-index: 0;
+  }
+  .overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(5,13,26,0.7) 0%, rgba(5,13,26,0.85) 100%);
+    z-index: 1;
+  }
+  .screen > * { position: relative; z-index: 2; }
+
+  /* ─── INTRO SCREEN ─── */
+  #intro .content {
+    text-align: center;
+    max-width: 600px; padding: 40px 20px;
+  }
+  .zone-badge {
+    display: inline-block;
+    border: 1px solid var(--cyan);
+    color: var(--cyan);
+    font-size: 12px; letter-spacing: 4px;
+    padding: 6px 16px; border-radius: 2px;
+    margin-bottom: 24px;
+    text-transform: uppercase;
+  }
+  #intro h1 {
+    font-size: clamp(36px, 8vw, 72px);
+    font-weight: 900;
+    background: linear-gradient(135deg, #fff 30%, var(--cyan));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    line-height: 1.1; margin-bottom: 20px;
+    text-shadow: none;
+  }
+  #intro p {
+    font-size: clamp(14px, 2vw, 18px);
+    color: rgba(255,255,255,0.7);
+    line-height: 1.7; margin-bottom: 40px;
+  }
+  .btn-start {
+    background: linear-gradient(135deg, var(--cyan), #0066ff);
+    color: #000; border: none;
+    font-size: 18px; font-weight: 700;
+    padding: 16px 48px; border-radius: 4px;
+    cursor: pointer; letter-spacing: 2px;
+    transition: all 0.2s;
+    box-shadow: 0 0 30px rgba(0,245,255,0.4);
+  }
+  .btn-start:hover { transform: scale(1.05); box-shadow: 0 0 50px rgba(0,245,255,0.6); }
+
+  /* ─── GAME SCREEN ─── */
+  #game {
+    flex-direction: column;
+    padding: 0; gap: 0;
+    background: var(--dark);
+  }
+  #game .bg-cover {
+    opacity: 0.25;
+    background-size: cover; background-position: center top;
+  }
+
+  /* HUD BAR */
+  #hud {
+    position: relative; z-index: 2;
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 20px;
+    background: rgba(0,0,0,0.6);
+    border-bottom: 1px solid var(--border-cyan);
+    width: 100%;
+  }
+  #timer-wrap {
+    display: flex; align-items: center; gap: 8px;
+    min-width: 80px;
+  }
+  #timer {
+    font-size: 28px; font-weight: 900;
+    color: var(--cyan); font-variant-numeric: tabular-nums;
+    text-shadow: 0 0 15px var(--cyan);
+  }
+  .timer-label { font-size: 11px; color: rgba(255,255,255,0.5); letter-spacing: 1px; }
+
+  #meter-wrap {
+    flex: 1;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .meter-header {
+    display: flex; justify-content: space-between;
+    font-size: 11px; color: rgba(255,255,255,0.6); letter-spacing: 1px;
+  }
+  #meter-bar-track {
+    height: 20px; background: rgba(255,255,255,0.1);
+    border-radius: 3px; overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.15);
+    position: relative;
+  }
+  #meter-bar {
+    height: 100%; width: 30%;
+    background: linear-gradient(90deg, var(--green), var(--cyan));
+    border-radius: 3px;
+    transition: width 0.4s ease, background 0.4s ease;
+    position: relative;
+  }
+  #meter-bar::after {
+    content: '';
+    position: absolute; right: 0; top: 0; bottom: 0;
+    width: 4px; background: rgba(255,255,255,0.8);
+    box-shadow: 0 0 8px #fff;
+  }
+  /* Safe zone marker */
+  #meter-bar-track::before {
+    content: '';
+    position: absolute;
+    left: 50%; top: 0; bottom: 0; width: 2px;
+    background: rgba(255,255,255,0.2);
+    z-index: 1;
+  }
+  #meter-bar-track::after {
+    content: '';
+    position: absolute;
+    left: 85%; top: 0; bottom: 0; width: 2px;
+    background: rgba(255,100,0,0.5);
+    z-index: 1;
+  }
+
+  #score-wrap {
+    text-align: right; min-width: 80px;
+  }
+  #score { font-size: 26px; font-weight: 900; color: var(--yellow);
+    text-shadow: 0 0 12px var(--yellow); font-variant-numeric: tabular-nums; }
+  .score-label { font-size: 10px; color: rgba(255,255,255,0.5); letter-spacing: 1px; }
+
+  /* MAIN GAME AREA */
+  #game-main {
+    position: relative; z-index: 2;
+    flex: 1; display: flex;
+    padding: 16px 20px 20px;
+    gap: 16px; align-items: stretch;
+    overflow: hidden;
+  }
+
+  /* WARNING LIGHTS PANEL */
+  #lights-panel {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 12px; min-width: 100px; max-width: 120px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-cyan);
+    border-radius: 8px; padding: 16px 10px;
+  }
+  .panel-title {
+    font-size: 10px; letter-spacing: 2px; color: rgba(255,255,255,0.5);
+    text-align: center; writing-mode: horizontal-tb;
+  }
+  #light-img {
+    width: 80px; height: 80px;
+    object-fit: contain;
+    transition: all 0.4s;
+    filter: drop-shadow(0 0 12px var(--green));
+  }
+  #status-text {
+    font-size: 13px; font-weight: 700; letter-spacing: 1px;
+    text-align: center; color: var(--green);
+    transition: color 0.4s;
+  }
+  #load-pct {
+    font-size: 28px; font-weight: 900;
+    color: var(--cyan); font-variant-numeric: tabular-nums;
+    text-shadow: 0 0 15px var(--cyan);
+  }
+  .load-unit { font-size: 10px; color: rgba(255,255,255,0.4); }
+
+  /* INDUSTRY CARDS */
+  #cards {
+    flex: 1; display: flex; gap: 16px;
+    align-items: stretch;
+  }
+  .card {
+    flex: 1; display: flex; flex-direction: column;
+    background: var(--card-bg);
+    border: 2px solid rgba(0,245,255,0.2);
+    border-radius: 12px; overflow: hidden;
+    cursor: pointer; transition: all 0.25s;
+    position: relative;
+  }
+  .card:hover { border-color: var(--cyan); transform: translateY(-2px); }
+  .card.on {
+    border-color: var(--green);
+    box-shadow: 0 0 25px rgba(0,255,136,0.3), inset 0 0 30px rgba(0,255,136,0.05);
+  }
+  .card.on .card-img-wrap::after {
+    background: rgba(0,255,136,0.1);
+  }
+  .card-img-wrap {
+    flex: 1; position: relative; overflow: hidden;
+    min-height: 0;
+  }
+  .card-img-wrap::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: rgba(0,0,20,0.3);
+    transition: background 0.3s;
+  }
+  .card img {
+    width: 100%; height: 100%;
+    object-fit: cover; object-position: center top;
+    display: block;
+  }
+  .card-toggle {
+    position: absolute; top: 8px; right: 8px; z-index: 3;
+    width: 36px; height: 20px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 10px;
+    display: flex; align-items: center;
+    padding: 2px;
+    transition: background 0.3s;
+  }
+  .card.on .card-toggle { background: var(--green); }
+  .card-toggle-dot {
+    width: 16px; height: 16px;
+    background: #fff; border-radius: 50%;
+    transition: transform 0.3s;
+    box-shadow: 0 0 4px rgba(0,0,0,0.4);
+  }
+  .card.on .card-toggle-dot { transform: translateX(16px); }
+
+  .card-info {
+    padding: 12px 14px;
+    background: rgba(0,0,0,0.4);
+    border-top: 1px solid rgba(0,245,255,0.1);
+  }
+  .card-name {
+    font-size: 14px; font-weight: 700;
+    color: #fff; margin-bottom: 4px;
+  }
+  .card-stat {
+    font-size: 20px; font-weight: 900;
+    color: var(--cyan);
+    text-shadow: 0 0 10px var(--cyan);
+  }
+  .card.on .card-stat { color: var(--green); text-shadow: 0 0 10px var(--green); }
+  .card-unit { font-size: 10px; color: rgba(255,255,255,0.4); letter-spacing: 1px; }
+  .card-status-label {
+    display: inline-block; margin-top: 6px;
+    font-size: 10px; letter-spacing: 2px; padding: 2px 8px;
+    border-radius: 2px;
+    border: 1px solid rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.4);
+    transition: all 0.3s;
+  }
+  .card.on .card-status-label {
+    border-color: var(--green);
+    color: var(--green);
+    background: rgba(0,255,136,0.1);
+  }
+
+  /* CRISIS POPUP */
+  #crisis-popup {
+    position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
+    background: rgba(10,5,0,0.95);
+    border: 2px solid var(--yellow);
+    border-radius: 8px; padding: 14px 24px;
+    text-align: center; z-index: 10;
+    min-width: 260px;
+    box-shadow: 0 0 30px rgba(255,204,0,0.3);
+    animation: slideDown 0.4s ease;
+    display: none;
+  }
+  #crisis-popup.show { display: block; }
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+    to { opacity: 1; transform: translateX(-50%) translateY(0); }
+  }
+  .crisis-icon { font-size: 28px; margin-bottom: 4px; }
+  .crisis-name { font-size: 16px; font-weight: 900; color: var(--yellow); }
+  .crisis-desc { font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 2px; }
+  .crisis-delta { font-size: 14px; font-weight: 700; margin-top: 6px; }
+
+  /* BLACKOUT OVERLAY */
+  #blackout {
+    position: fixed; inset: 0; z-index: 100;
+    background: rgba(255,0,0,0.15);
+    pointer-events: none;
+    display: none;
+  }
+  #blackout.flash { display: block; animation: flashRed 0.5s; }
+  @keyframes flashRed {
+    0% { opacity: 0; } 30% { opacity: 1; } 100% { opacity: 0; }
+  }
+
+  /* ─── RESULT SCREEN ─── */
+  #result .content {
+    text-align: center; max-width: 560px; padding: 40px 20px;
+  }
+  #result h2 {
+    font-size: clamp(28px, 6vw, 52px); font-weight: 900;
+    background: linear-gradient(135deg, var(--yellow), var(--cyan));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    margin-bottom: 8px;
+  }
+  .result-subtitle { font-size: 14px; color: rgba(255,255,255,0.5); margin-bottom: 32px; }
+  .result-score-big {
+    font-size: clamp(64px, 14vw, 96px); font-weight: 900;
+    color: var(--yellow); line-height: 1;
+    text-shadow: 0 0 40px rgba(255,204,0,0.5);
+    margin-bottom: 4px;
+  }
+  .result-score-label { font-size: 16px; color: rgba(255,255,255,0.5); margin-bottom: 28px; }
+  .result-stats {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    margin-bottom: 32px;
+  }
+  .result-stat {
+    background: var(--card-bg); border: 1px solid var(--border-cyan);
+    border-radius: 8px; padding: 14px;
+  }
+  .result-stat-val { font-size: 22px; font-weight: 900; color: var(--cyan); }
+  .result-stat-label { font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 4px; letter-spacing: 1px; }
+  .result-message {
+    font-size: 15px; color: rgba(255,255,255,0.7);
+    line-height: 1.6; margin-bottom: 32px;
+    padding: 16px; background: var(--card-bg);
+    border-radius: 8px; border: 1px solid var(--border-cyan);
+  }
+  .btn-restart {
+    background: transparent; color: var(--cyan);
+    border: 2px solid var(--cyan); border-radius: 4px;
+    font-size: 16px; font-weight: 700;
+    padding: 14px 36px; cursor: pointer; letter-spacing: 2px;
+    transition: all 0.2s; margin-right: 12px;
+  }
+  .btn-restart:hover { background: rgba(0,245,255,0.1); }
+  .btn-share {
+    background: linear-gradient(135deg, var(--yellow), #ff8800);
+    color: #000; border: none; border-radius: 4px;
+    font-size: 16px; font-weight: 700;
+    padding: 14px 36px; cursor: pointer; letter-spacing: 1px;
+    transition: all 0.2s;
+  }
+  .btn-share:hover { transform: scale(1.05); }
+
+  /* Low load warning */
+  #low-warning {
+    position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: rgba(255,50,0,0.85); color: #fff;
+    padding: 8px 20px; border-radius: 4px; font-size: 13px; font-weight: 700;
+    letter-spacing: 1px; z-index: 5;
+    display: none;
+    animation: pulse 1s infinite;
+  }
+  #low-warning.show { display: block; }
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.6; } }
+
+  /* Screen shake for final countdown */
+  @keyframes shake {
+    0%,100% { transform: translate(0,0) rotate(0deg); }
+    20% { transform: translate(-3px,2px) rotate(-0.5deg); }
+    40% { transform: translate(3px,-2px) rotate(0.5deg); }
+    60% { transform: translate(-2px,3px) rotate(-0.3deg); }
+    80% { transform: translate(2px,-1px) rotate(0.3deg); }
+  }
+
+  /* ─── MOBILE ─── */
+  @media (max-width: 600px) {
+    #game-main { flex-direction: column; padding: 10px 12px; gap: 10px; }
+    #lights-panel {
+      flex-direction: row; min-width: unset; max-width: unset;
+      width: 100%; padding: 10px 16px; gap: 16px;
+    }
+    #lights-panel .panel-title { display: none; }
+    #light-img { width: 50px; height: 50px; }
+    #load-pct { font-size: 22px; }
+    #cards { flex-direction: row; gap: 8px; }
+    .card-info { padding: 8px 10px; }
+    .card-name { font-size: 12px; }
+    .card-stat { font-size: 16px; }
+    #hud { padding: 8px 12px; gap: 8px; }
+    #timer { font-size: 22px; }
+    #score { font-size: 20px; }
+    .meter-header { font-size: 10px; }
+    .result-stats { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════ INTRO SCREEN ═══════════════════ -->
+<div id="intro" class="screen">
+  <div class="bg-cover" id="intro-bg"></div>
+  <div class="overlay"></div>
+  <div class="content">
+    <div class="zone-badge">ZONE 1 · 算力時代</div>
+    <h1>算力吃電王</h1>
+    <p>台灣電網正承受史無前例的用電壓力<br>AI資料中心、半導體廠、便利商店…<br>你能在 30 秒內完美調度電力嗎？</p>
+    <button class="btn-start" onclick="startGame()">⚡ 開始挑戰</button>
+  </div>
+</div>
+
+<!-- ═══════════════════ GAME SCREEN ═══════════════════ -->
+<div id="game" class="screen hidden">
+  <div class="bg-cover" id="game-bg"></div>
+
+  <!-- HUD -->
+  <div id="hud">
+    <div id="timer-wrap">
+      <div>
+        <div id="timer">30</div>
+        <div class="timer-label">秒</div>
+      </div>
+    </div>
+    <div id="meter-wrap">
+      <div class="meter-header">
+        <span>⚡ 電網負載</span>
+        <span id="meter-label">30% ｜ 安全</span>
+      </div>
+      <div id="meter-bar-track">
+        <div id="meter-bar"></div>
+      </div>
+    </div>
+    <div id="score-wrap">
+      <div id="score">0</div>
+      <div class="score-label">分數</div>
+    </div>
+  </div>
+
+  <!-- MAIN AREA -->
+  <div id="game-main">
+
+    <!-- Warning Light Panel -->
+    <div id="lights-panel">
+      <div class="panel-title">電網狀態</div>
+      <img id="light-img" src="遊戲設計/warning_light_green.jpg" alt="warning light">
+      <div id="load-pct">30%</div>
+      <div class="load-unit">負載率</div>
+      <div id="status-text">電網正常</div>
+    </div>
+
+    <!-- Industry Cards -->
+    <div id="cards">
+      <div class="card" id="card-711" onclick="toggleCard('711')">
+        <div class="card-img-wrap">
+          <img src="遊戲設計/btn_711.jpg" alt="便利商店">
+          <div class="card-toggle"><div class="card-toggle-dot"></div></div>
+        </div>
+        <div class="card-info">
+          <div class="card-name">便利商店群</div>
+          <div class="card-stat">+20<span class="card-unit">%</span></div>
+          <div class="card-unit">3.5 kW × 12,000 門市</div>
+          <div class="card-status-label" id="lbl-711">● 未供電</div>
+        </div>
+      </div>
+
+      <div class="card" id="card-semi" onclick="toggleCard('semi')">
+        <div class="card-img-wrap">
+          <img src="遊戲設計/btn_semiconductor.jpg" alt="半導體廠">
+          <div class="card-toggle"><div class="card-toggle-dot"></div></div>
+        </div>
+        <div class="card-info">
+          <div class="card-name">半導體廠</div>
+          <div class="card-stat">+30<span class="card-unit">%</span></div>
+          <div class="card-unit">850 MW 全年無休</div>
+          <div class="card-status-label" id="lbl-semi">● 未供電</div>
+        </div>
+      </div>
+
+      <div class="card" id="card-aidc" onclick="toggleCard('aidc')">
+        <div class="card-img-wrap">
+          <img src="遊戲設計/btn_aidc.jpg" alt="AI資料中心">
+          <div class="card-toggle"><div class="card-toggle-dot"></div></div>
+        </div>
+        <div class="card-info">
+          <div class="card-name">AI 資料中心</div>
+          <div class="card-stat">+45<span class="card-unit">%</span></div>
+          <div class="card-unit">1,200 MW 算力超載</div>
+          <div class="card-status-label" id="lbl-aidc">● 未供電</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Crisis Popup -->
+  <div id="crisis-popup">
+    <div class="crisis-icon" id="crisis-icon">⚡</div>
+    <div class="crisis-name" id="crisis-name">事件</div>
+    <div class="crisis-desc" id="crisis-desc">描述</div>
+    <div class="crisis-delta" id="crisis-delta"></div>
+  </div>
+
+  <!-- Low warning -->
+  <div id="low-warning">⚠ 供電不足！請開啟更多產業</div>
+</div>
+
+<!-- BLACKOUT -->
+<div id="blackout"></div>
+
+<!-- ═══════════════════ RESULT SCREEN ═══════════════════ -->
+<div id="result" class="screen hidden">
+  <div class="bg-cover" id="result-bg"></div>
+  <div class="overlay"></div>
+  <div class="content">
+    <h2 id="result-title">調度完成！</h2>
+    <div class="result-subtitle" id="result-subtitle">你的電網表現</div>
+    <div class="result-score-big" id="result-score">0</div>
+    <div class="result-score-label">總得分</div>
+    <div class="result-stats">
+      <div class="result-stat">
+        <div class="result-stat-val" id="stat-green">0s</div>
+        <div class="result-stat-label">🟢 安全運行時間</div>
+      </div>
+      <div class="result-stat">
+        <div class="result-stat-val" id="stat-overload">0s</div>
+        <div class="result-stat-label">🔴 超載警示時間</div>
+      </div>
+      <div class="result-stat">
+        <div class="result-stat-val" id="stat-crises">0</div>
+        <div class="result-stat-label">⚡ 危機事件數</div>
+      </div>
+      <div class="result-stat">
+        <div class="result-stat-val" id="stat-grade">B</div>
+        <div class="result-stat-label">🏆 調度等級</div>
+      </div>
+    </div>
+    <div class="result-message" id="result-message">
+      台電每天都在進行這樣的即時調度——<br>確保每一度電精準送到需要的地方。
+    </div>
+    <button class="btn-restart" onclick="restartGame()">🔄 再挑戰</button>
+    <button class="btn-share" onclick="shareResult()">📢 分享結果</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+// ─── SOUND ENGINE (Web Audio API) ───
+// ═══════════════════════════════════════════
+let AC = null;
+let bgGain = null, bgOsc = null, bgPulseInterval = null;
+let warningInterval = null;
+
+function getAC() {
+  if (!AC) { AC = new (window.AudioContext || window.webkitAudioContext)(); }
+  if (AC.state === 'suspended') AC.resume();
+  return AC;
+}
+
+// Master volume
+function mkGain(vol) {
+  const g = getAC().createGain();
+  g.gain.value = vol;
+  g.connect(getAC().destination);
+  return g;
+}
+
+// Single oscillator burst
+function burst(freq, type, vol, dur, t0) {
+  const ac = getAC();
+  const t = t0 !== undefined ? t0 : ac.currentTime;
+  const osc = ac.createOscillator();
+  const g = ac.createGain();
+  osc.type = type || 'sine';
+  osc.frequency.value = freq;
+  osc.connect(g); g.connect(ac.destination);
+  g.gain.setValueAtTime(vol, t);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  osc.start(t); osc.stop(t + dur + 0.01);
+}
+
+// Sweeping oscillator
+function sweep(f0, f1, type, vol, dur, t0) {
+  const ac = getAC();
+  const t = t0 !== undefined ? t0 : ac.currentTime;
+  const osc = ac.createOscillator();
+  const g = ac.createGain();
+  osc.type = type || 'sine';
+  osc.frequency.setValueAtTime(f0, t);
+  osc.frequency.exponentialRampToValueAtTime(f1, t + dur);
+  osc.connect(g); g.connect(ac.destination);
+  g.gain.setValueAtTime(vol, t);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  osc.start(t); osc.stop(t + dur + 0.01);
+}
+
+// ── Individual Sounds ──
+
+// 秒針滴答 (every second)
+function sndTick(urgent) {
+  const f = urgent ? 1200 : 900;
+  const v = urgent ? 0.35 : 0.18;
+  burst(f, 'square', v, 0.04);
+}
+
+// 卡片開啟 (power on)
+function sndPowerOn() {
+  const ac = getAC(), t = ac.currentTime;
+  sweep(220, 880, 'sine', 0.28, 0.22, t);
+  burst(1760, 'sine', 0.15, 0.12, t + 0.2);
+}
+
+// 卡片關閉 (power off)
+function sndPowerOff() {
+  sweep(660, 110, 'sine', 0.25, 0.22);
+}
+
+// 危機事件警報 (crisis alarm) - 三段上升警笛
+function sndCrisis() {
+  const ac = getAC();
+  for (let i = 0; i < 3; i++) {
+    const t = ac.currentTime + i * 0.28;
+    sweep(440, 1320, 'sawtooth', 0.3, 0.22, t);
+  }
+}
+
+// 超載電擊聲 (blackout buzz)
+function sndBlackout() {
+  const ac = getAC(), t = ac.currentTime;
+  // harsh sawtooth crash
+  burst(80, 'sawtooth', 0.5, 0.08, t);
+  burst(160, 'sawtooth', 0.4, 0.06, t + 0.05);
+  sweep(300, 50, 'sawtooth', 0.4, 0.4, t + 0.08);
+}
+
+// 勝利音 (win fanfare) - 上升琶音
+function sndWin() {
+  const ac = getAC();
+  [523, 659, 784, 1047, 1319].forEach((f, i) => {
+    burst(f, 'sine', 0.28, 0.35, ac.currentTime + i * 0.13);
+  });
+  sweep(1319, 1760, 'sine', 0.2, 0.4, ac.currentTime + 0.65);
+}
+
+// 失敗音 (lose)
+function sndLose() {
+  const ac = getAC();
+  sweep(440, 110, 'sawtooth', 0.35, 0.6);
+  sweep(330, 82, 'sine', 0.2, 0.8, ac.currentTime + 0.1);
+}
+
+// 最後10秒緊張心跳 (urgent heartbeat)
+function sndHeartbeat() {
+  const ac = getAC(), t = ac.currentTime;
+  burst(90, 'sine', 0.25, 0.08, t);        // lub
+  burst(75, 'sine', 0.2, 0.06, t + 0.1);   // dub
+}
+
+// ── 超載警告循環 ──
+function startWarningLoop() {
+  stopWarningLoop();
+  warningInterval = setInterval(() => {
+    const ac = getAC(), t = ac.currentTime;
+    sweep(880, 660, 'square', 0.2, 0.12, t);
+    sweep(880, 660, 'square', 0.2, 0.12, t + 0.18);
+  }, 600);
+}
+function stopWarningLoop() {
+  if (warningInterval) { clearInterval(warningInterval); warningInterval = null; }
+}
+
+// ── 背景環境音 (ambient electrical hum) ──
+function startAmbient() {
+  stopAmbient();
+  const ac = getAC();
+
+  // Low hum drone
+  bgOsc = ac.createOscillator();
+  bgGain = ac.createGain();
+  bgOsc.type = 'sawtooth';
+  bgOsc.frequency.value = 55;
+  bgGain.gain.value = 0.04;
+  bgOsc.connect(bgGain); bgGain.connect(ac.destination);
+  bgOsc.start();
+
+  // Second harmonic
+  const osc2 = ac.createOscillator();
+  const g2 = ac.createGain();
+  osc2.type = 'sine';
+  osc2.frequency.value = 110;
+  g2.gain.value = 0.025;
+  osc2.connect(g2); g2.connect(ac.destination);
+  osc2.start();
+
+  // Rhythmic pulse every 0.6s
+  bgPulseInterval = setInterval(() => {
+    burst(220, 'sine', 0.06, 0.15);
+  }, 600);
+}
+
+function stopAmbient() {
+  if (bgOsc) { try { bgOsc.stop(); } catch(e){} bgOsc = null; }
+  if (bgPulseInterval) { clearInterval(bgPulseInterval); bgPulseInterval = null; }
+}
+
+// ── 最後倒數加速 ──
+let urgentBeat = null;
+function startUrgentBeat() {
+  stopUrgentBeat();
+  let interval = 500;
+  const ac = getAC();
+  urgentBeat = setInterval(() => {
+    sndHeartbeat();
+    interval = Math.max(250, interval - 20);
+  }, interval);
+}
+function stopUrgentBeat() {
+  if (urgentBeat) { clearInterval(urgentBeat); urgentBeat = null; }
+}
+
+// ─── Game State ───
+const TOTAL_TIME = 30;
+const BASE_LOAD = 25; // always-on base %
+const GOOD_MIN = 50, GOOD_MAX = 85, DANGER = 95;
+
+const industries = {
+  '711':  { load: 20, name: '便利商店群' },
+  'semi': { load: 30, name: '半導體廠' },
+  'aidc': { load: 45, name: 'AI資料中心' }
+};
+
+const CRISES = [
+  { icon: '🌡️', name: '夏季熱浪！', desc: '全台空調用電暴增', delta: +15, duration: 12 },
+  { icon: '🏭', name: '出口訂單爆量！', desc: '工廠滿載生產', delta: +12, duration: 10 },
+  { icon: '🌙', name: '夜間離峰來臨', desc: '民間用電大幅下降', delta: -18, duration: 10 },
+  { icon: '⚡', name: '電動車充電潮！', desc: '下班後充電高峰', delta: +10, duration: 12 },
+  { icon: '🌧️', name: '梅雨連日！', desc: '太陽能發電驟降', delta: +8, duration: 10 },
+  { icon: '💨', name: '強風警報！', desc: '風力大幅提升發電', delta: -12, duration: 8 },
+];
+
+const LIGHT_IMGS = {
+  green:  '遊戲設計/warning_light_green.jpg',
+  yellow: '遊戲設計/warning_light_yellow.jpg',
+  red:    '遊戲設計/warning_light_red.jpg'
+};
+
+let state = {};
+let gameInterval = null;
+let crisisTimeout = null;
+
+// ─── Init Images ───
+window.onload = () => {
+  document.getElementById('intro-bg').style.backgroundImage = "url('遊戲設計/bg_zone1.jpg')";
+  document.getElementById('game-bg').style.backgroundImage = "url('遊戲設計/bg_zone1.jpg')";
+  document.getElementById('result-bg').style.backgroundImage = "url('遊戲設計/bg_result.jpg')";
+};
+
+// ─── Start Game ───
+function startGame() {
+  state = {
+    timer: TOTAL_TIME,
+    score: 0,
+    on: { '711': false, 'semi': false, 'aidc': false },
+    crisisDelta: 0,
+    currentCrisis: null,
+    stats: { green: 0, yellow: 0, overload: 0, crises: 0, low: 0 }
+  };
+
+  // Reset UI
+  ['711','semi','aidc'].forEach(id => {
+    document.getElementById('card-'+id).classList.remove('on');
+    document.getElementById('lbl-'+id).textContent = '● 未供電';
+  });
+  document.getElementById('timer').textContent = TOTAL_TIME;
+  document.getElementById('score').textContent = '0';
+
+  showScreen('game');
+  updateDisplay();
+  scheduleNextCrisis();
+  startAmbient();
+
+  gameInterval = setInterval(tick, 1000);
+}
+
+// ─── Main Tick ───
+function tick() {
+  state.timer--;
+  document.getElementById('timer').textContent = state.timer;
+
+  const load = calcLoad();
+  const status = getStatus(load);
+
+  // Scoring
+  if (status === 'good') { state.score += 3; state.stats.green++; stopWarningLoop(); }
+  else if (status === 'warning') {
+    state.score += 1; state.stats.yellow++;
+    if (!warningInterval) startWarningLoop();
+  }
+  else if (status === 'danger') {
+    state.score = Math.max(0, state.score - 8);
+    state.stats.overload++;
+    triggerBlackout();
+    sndBlackout();
+    startWarningLoop();
+  } else if (status === 'low') {
+    state.stats.low++;
+    stopWarningLoop();
+  }
+
+  // Tick sound
+  const urgent = state.timer <= 10;
+  sndTick(urgent);
+  if (state.timer === 10) startUrgentBeat();
+
+  document.getElementById('score').textContent = state.score;
+
+  // Timer color
+  const timerEl = document.getElementById('timer');
+  timerEl.style.color = urgent ? '#ff4444' : 'var(--cyan)';
+  timerEl.style.textShadow = urgent ? '0 0 15px #ff4444' : '0 0 15px var(--cyan)';
+  // Screen shake on last 5 sec
+  if (state.timer <= 5 && state.timer > 0) {
+    document.getElementById('game').style.animation = 'shake 0.3s';
+    setTimeout(() => { document.getElementById('game').style.animation = ''; }, 300);
+  }
+
+  updateDisplay();
+
+  if (state.timer <= 0) endGame();
+}
+
+// ─── Load Calculation ───
+function calcLoad() {
+  let load = BASE_LOAD + state.crisisDelta;
+  Object.keys(industries).forEach(id => {
+    if (state.on[id]) load += industries[id].load;
+  });
+  return Math.max(0, Math.min(100, load));
+}
+
+function getStatus(load) {
+  if (load < GOOD_MIN) return 'low';
+  if (load <= GOOD_MAX) return 'good';
+  if (load <= DANGER) return 'warning';
+  return 'danger';
+}
+
+// ─── Update Display ───
+function updateDisplay() {
+  const load = calcLoad();
+  const status = getStatus(load);
+
+  // Power meter
+  document.getElementById('meter-bar').style.width = load + '%';
+  const barColor =
+    status === 'good' ? 'linear-gradient(90deg, #00ff88, #00ccff)' :
+    status === 'warning' ? 'linear-gradient(90deg, #ffcc00, #ff8800)' :
+    status === 'danger' ? 'linear-gradient(90deg, #ff3344, #ff6600)' :
+    'linear-gradient(90deg, #334466, #445588)';
+  document.getElementById('meter-bar').style.background = barColor;
+
+  // Meter label
+  const labelMap = { good:'安全', warning:'⚠ 警戒', danger:'🔴 超載！', low:'供電不足' };
+  document.getElementById('meter-label').textContent = `${load}% ｜ ${labelMap[status]}`;
+  document.getElementById('meter-label').style.color =
+    status === 'good' ? 'var(--green)' :
+    status === 'warning' ? 'var(--yellow)' :
+    status === 'danger' ? 'var(--red)' : '#6688aa';
+
+  // Load % display
+  document.getElementById('load-pct').textContent = load + '%';
+  document.getElementById('load-pct').style.color =
+    status === 'good' ? 'var(--green)' :
+    status === 'warning' ? 'var(--yellow)' :
+    status === 'danger' ? 'var(--red)' : 'var(--cyan)';
+
+  // Warning light
+  const lightEl = document.getElementById('light-img');
+  const statusEl = document.getElementById('status-text');
+  if (status === 'good') {
+    lightEl.src = LIGHT_IMGS.green;
+    lightEl.style.filter = 'drop-shadow(0 0 15px #00ff88)';
+    statusEl.textContent = '電網正常'; statusEl.style.color = 'var(--green)';
+  } else if (status === 'warning') {
+    lightEl.src = LIGHT_IMGS.yellow;
+    lightEl.style.filter = 'drop-shadow(0 0 15px #ffcc00)';
+    statusEl.textContent = '⚠ 警戒狀態'; statusEl.style.color = 'var(--yellow)';
+  } else if (status === 'danger') {
+    lightEl.src = LIGHT_IMGS.red;
+    lightEl.style.filter = 'drop-shadow(0 0 20px #ff3344)';
+    statusEl.textContent = '🔴 超載！'; statusEl.style.color = 'var(--red)';
+  } else {
+    lightEl.src = LIGHT_IMGS.green;
+    lightEl.style.filter = 'drop-shadow(0 0 8px #334466) brightness(0.4)';
+    statusEl.textContent = '供電不足'; statusEl.style.color = '#6688aa';
+  }
+
+  // Low warning bar
+  const lowWarn = document.getElementById('low-warning');
+  if (status === 'low' || status === 'danger') { lowWarn.classList.add('show'); }
+  else { lowWarn.classList.remove('show'); }
+  lowWarn.textContent = status === 'danger' ? '🔴 超載！自動扣分 -8' : '⚠ 供電不足！請開啟更多產業';
+}
+
+// ─── Toggle Card ───
+function toggleCard(id) {
+  state.on[id] = !state.on[id];
+  const cardEl = document.getElementById('card-' + id);
+  const lblEl = document.getElementById('lbl-' + id);
+  if (state.on[id]) {
+    cardEl.classList.add('on');
+    lblEl.textContent = '● 供電中';
+    sndPowerOn();
+  } else {
+    cardEl.classList.remove('on');
+    lblEl.textContent = '● 未供電';
+    sndPowerOff();
+  }
+  updateDisplay();
+}
+
+// ─── Crisis System ───
+function scheduleNextCrisis() {
+  const delay = (15 + Math.random() * 15) * 1000;
+  crisisTimeout = setTimeout(() => {
+    if (state.timer <= 5) return;
+    triggerCrisis();
+  }, delay);
+}
+
+function triggerCrisis() {
+  const crisis = CRISES[Math.floor(Math.random() * CRISES.length)];
+  state.currentCrisis = crisis;
+  state.crisisDelta = crisis.delta;
+  state.stats.crises++;
+  sndCrisis();
+
+  const popup = document.getElementById('crisis-popup');
+  document.getElementById('crisis-icon').textContent = crisis.icon;
+  document.getElementById('crisis-name').textContent = crisis.name;
+  document.getElementById('crisis-desc').textContent = crisis.desc;
+  const delta = crisis.delta;
+  document.getElementById('crisis-delta').textContent =
+    `電力需求 ${delta > 0 ? '+' : ''}${delta}%`;
+  document.getElementById('crisis-delta').style.color = delta > 0 ? 'var(--red)' : 'var(--green)';
+  popup.classList.add('show');
+  updateDisplay();
+
+  setTimeout(() => { popup.classList.remove('show'); }, 3500);
+
+  setTimeout(() => {
+    state.crisisDelta = 0;
+    state.currentCrisis = null;
+    updateDisplay();
+    if (state.timer > 5) scheduleNextCrisis();
+  }, crisis.duration * 1000);
+}
+
+// ─── Blackout Flash ───
+function triggerBlackout() {
+  const el = document.getElementById('blackout');
+  el.classList.remove('flash');
+  void el.offsetWidth;
+  el.classList.add('flash');
+}
+
+// ─── End Game ───
+function endGame() {
+  clearInterval(gameInterval);
+  clearTimeout(crisisTimeout);
+  stopAmbient();
+  stopWarningLoop();
+  stopUrgentBeat();
+
+  const isWin = state.score >= 35;
+  if (isWin) sndWin(); else sndLose();
+
+  const grade = state.score >= 75 ? 'S' : state.score >= 55 ? 'A' : state.score >= 35 ? 'B' : state.score >= 15 ? 'C' : 'D';
+  const titles = { S:'傳奇調度員！', A:'優秀調度員！', B:'稱職調度員', C:'調度新手', D:'電網危機...' };
+  const msgs = {
+    S: '完美！你掌握了台灣電網調度的精髓。<br>台電每天就是這樣確保每一度電精準送達。',
+    A: '很棒的表現！你對電力供需有敏銳的直覺。',
+    B: '不錯！電力調度需要不斷練習才能精通。',
+    C: '還有進步空間！試著平衡三種產業的用電。',
+    D: '電網頻繁超載——這正是台電每天面對的挑戰！'
+  };
+
+  document.getElementById('result-title').textContent = titles[grade];
+  document.getElementById('result-score').textContent = state.score;
+  document.getElementById('result-subtitle').textContent = '你在 30 秒內的電網表現';
+  document.getElementById('stat-green').textContent = state.stats.green + 's';
+  document.getElementById('stat-overload').textContent = state.stats.overload + 's';
+  document.getElementById('stat-crises').textContent = state.stats.crises + ' 次';
+  document.getElementById('stat-grade').textContent = grade;
+  document.getElementById('result-message').innerHTML = msgs[grade];
+
+  const scoreEl = document.getElementById('result-score');
+  scoreEl.style.color = grade === 'S' ? 'var(--cyan)' : grade === 'A' ? 'var(--green)' : 'var(--yellow)';
+
+  showScreen('result');
+}
+
+// ─── Restart ───
+function restartGame() { showScreen('intro'); }
+
+// ─── Share ───
+function shareResult() {
+  const score = state.score;
+  const grade = document.getElementById('stat-grade').textContent;
+  const msg = `我在【算力吃電王】拿到 ${score} 分（${grade} 等級）！\n台灣電網調度真的超難～\n#台電 #2026能源展 #算力時代`;
+  if (navigator.share) {
+    navigator.share({ title: '算力吃電王', text: msg });
+  } else {
+    navigator.clipboard.writeText(msg).then(() => {
+      alert('已複製到剪貼簿！\n\n' + msg);
+    });
+  }
+}
+
+// ─── Screen Management ───
+function showScreen(name) {
+  ['intro','game','result'].forEach(s => {
+    document.getElementById(s).classList.toggle('hidden', s !== name);
+  });
+}
+</script>
+</body>
+</html>
